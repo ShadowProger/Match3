@@ -4,8 +4,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 
 public class PossibleMatchPattern {
-    Vector2 napr;
-    Array<Vector2> gems;
+    public Vector2 napr;
+    public Array<Vector2> gems;
 
     public PossibleMatchPattern() {
         napr = new Vector2(0, 0);

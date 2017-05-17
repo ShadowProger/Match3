@@ -15,6 +15,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.match3.Match3;
 import com.match3.gamelogic.Cell;
+import com.match3.gamelogic.Field;
 import com.match3.gamelogic.FieldParam;
 import com.match3.gamelogic.Level;
 import com.match3.gamelogic.Mach3Game;
@@ -36,6 +37,8 @@ public class MapScreen implements Screen, GestureDetector.GestureListener, Input
     private float dSpeedX;
     private boolean isSwap;
     private boolean isPan;
+
+    //private Field field;
 
     public MapScreen(Match3 game) {
         Gdx.app.log("GameInfo", "MapScreen: Create");
@@ -142,6 +145,8 @@ public class MapScreen implements Screen, GestureDetector.GestureListener, Input
                 fParam.spawnPoints.add(v);
             }
 
+            fParam.itemPoints = new Array<Vector2>();
+
             Gdx.app.log("INFO", "Load is Successful");
         }
         catch (IOException ex) {
@@ -228,6 +233,8 @@ public class MapScreen implements Screen, GestureDetector.GestureListener, Input
     }
     //endregion
 
+
+
     //region InputProcessor_Region
     @Override
     public boolean keyDown(int keycode) {
@@ -255,6 +262,8 @@ public class MapScreen implements Screen, GestureDetector.GestureListener, Input
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
         Gdx.app.log("GameInfo", "touchUp");
         game.fParam = loadLevel("2.lvl");
+        game.setScreen(new GameScreen(game));
+        //field = new Field(game.fParam);
         return false;
     }
 
@@ -273,6 +282,8 @@ public class MapScreen implements Screen, GestureDetector.GestureListener, Input
         return false;
     }
     //endregion
+
+
 
     //region GestureListener_Region
     @Override
