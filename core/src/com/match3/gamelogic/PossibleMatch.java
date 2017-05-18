@@ -1,7 +1,7 @@
 package com.match3.gamelogic;
 
 public class PossibleMatch {
-    int x;
-    int y;
-    int patternIndex;
+    public int x;
+    public int y;
+    public int patternIndex;
 }
