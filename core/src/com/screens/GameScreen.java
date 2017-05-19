@@ -80,10 +80,10 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
     private PossibleMatch possibleMatch;
     private boolean hintPossibleMatch;
 
-    private Vector2 gem1;
-    private Vector2 gem2;
-    private Vector2 swappingGem1;
-    private Vector2 swappingGem2;
+    private Vector2 gem1 = new Vector2(0, 0);
+    private Vector2 gem2 = new Vector2(0, 0);
+    private Vector2 swappingGem1 = new Vector2(0, 0);
+    private Vector2 swappingGem2 = new Vector2(0, 0);
 
     private boolean isWrongSwap;
     private boolean isSwap;
@@ -96,7 +96,7 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
 
     private int[][] exp_1 = {
             {0, 1, 0},
-            {0, 1, 0},
+            {1, 1, 1},
             {0, 1, 0}};
     private int[][] exp_2 = {
             {0, 1, 1, 1, 0},
@@ -249,7 +249,7 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
     }
 
 
-
+    /*
     private void drawChip(Chip chip) {
         if (chip.cell != null) {
             if (chip.cell.gold) {
@@ -309,6 +309,67 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
             }
         }
     }
+    */
+    private void drawChip(Chip chip) {
+        Cell cell = field.cells[((int) chip.cellPos.y)][((int) chip.cellPos.x)];
+        if (cell != null) {
+            if (cell.gold) {
+                setRegionForChip(rgGold, chip);
+                sprite.draw(batch);
+                return;
+            }
+            if (cell.box > 0) {
+                if (cell.box == 1) {
+                    setRegionForChip(rgBox_0, chip);
+                    sprite.draw(batch);
+                    return;
+                }
+                if (cell.box == 2) {
+                    setRegionForChip(rgBox_1, chip);
+                    sprite.draw(batch);
+                    return;
+                }
+            }
+            if (cell.dirt > 0) {
+                if (cell.dirt == 1) {
+                    setRegionForChip(rgDirt_0, chip);
+                    sprite.draw(batch);
+                }
+                if (cell.dirt == 2) {
+                    setRegionForChip(rgDirt_1, chip);
+                    sprite.draw(batch);
+                }
+            }
+            if (cell.value > 0) {
+                setRegionForChip(rgCellValues[cell.value - 1], chip);
+                sprite.draw(batch);
+            }
+            if (cell.chain > 0) {
+                if (cell.chain == 1) {
+                    setRegionForChip(rgChain_0, chip);
+                    sprite.draw(batch);
+                    return;
+                }
+                if (cell.chain == 2) {
+                    setRegionForChip(rgChain_1, chip);
+                    sprite.draw(batch);
+                    return;
+                }
+            }
+            if (cell.ice > 0) {
+                if (cell.ice == 1) {
+                    setRegionForChip(rgIce_0, chip);
+                    sprite.draw(batch);
+                    return;
+                }
+                if (cell.ice == 2) {
+                    setRegionForChip(rgIce_1, chip);
+                    sprite.draw(batch);
+                    return;
+                }
+            }
+        }
+    }
 
 
 
@@ -355,10 +416,10 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
 
     private boolean isEngaged(Cell cell) {
         if (cell == null)
-            return false;
+            return true;
         boolean res = true;
         if (cell.modif)
-            res = false;
+            res = true;
         else {
             if (cell.value == 0)
                 res = false;
@@ -464,7 +525,7 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
                 field.cells[y][x].hold = true;
                 Chip chip = new Chip(field.cells[y][x]);
                 chip.setCellPos(x, y);
-                chip.setPos(x * CH, y * CH);
+                chip.setPos(x * CH, (y - 1) * CH);
                 chip.setNewPos(x * CH, y * CH);
                 addChip(chip);
             }
@@ -517,7 +578,7 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
 
     private void buildExpBlockMatrix() {
         for (int i = 0; i < field.height; i++)
-            for (int j = 0; j < field.height; j++)
+            for (int j = 0; j < field.width; j++)
                 expBlockMatrix[i][j] = 0;
         for (int i = 0; i < matches.size; i++)
             for (int j = 0; j < matches.get(i).gems.size; j++) {
@@ -531,14 +592,14 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
 
     private Array<Vector2> buildExplosionMatrix(int x, int y) {
         for (int i = 0; i < field.height; i++)
-            for (int j = 0; j < field.height; j++)
+            for (int j = 0; j < field.width; j++)
                 explosionMatrix[i][j] = 0;
 
         explode(x, y);
 
         Array<Vector2> res = new Array<Vector2>();
         for (int i = 0; i < field.height; i++)
-            for (int j = 0; j < field.height; j++) {
+            for (int j = 0; j < field.width; j++) {
                 if (explosionMatrix[i][j] == 1) {
                     Vector2 v = new Vector2(j, i);
                     res.add(v);
@@ -627,6 +688,29 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
             return chip;
         else
             return null;
+    }
+
+
+
+    private Array<Vector2> getChipOneColor(int color) {
+        Array<Vector2> res = new Array<Vector2>();
+        if (!((color >= 1 && color <= 6) || color == 12))
+            return res;
+        for (Chip chip : chips) {
+            Cell cell = field.cells[((int) chip.cellPos.y)][((int) chip.cellPos.x)];
+            if (cell != null) {
+                boolean f = true;
+                if (cell.modif) {
+                    if (cell.gold || cell.box > 0 || cell.dirt > 0)
+                        f = false;
+                }
+                if (f && cell.value == color) {
+                    Vector2 v = new Vector2(chip.cellPos);
+                    res.add(v);
+                }
+            }
+        }
+        return res;
     }
 
 
@@ -776,6 +860,9 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
                                     if (field.cells[y][x].ice == 0)
                                         field.cells[y][x].modif = false;
                             }
+                            //Chip chip = getChip(x, y);
+                            //if (chip != null)
+                              //  chip.cell.copy();
                         } else {
                             if (field.cells[y][x].dirt > 0) {
                                 field.cells[y][x].dirt--;
@@ -861,6 +948,134 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
                 }
             }
         }
+    }
+
+
+
+    private void removeColorChips(Array<Vector2> gems) {
+        int[][] m = new int[field.height][field.width];
+        for (int i = 0; i < field.height; i++)
+            for (int j = 0; j < field.width; j++)
+                m[i][j] = 0;
+
+        for (int i = 0; i < gems.size; i++) {
+            int x = (int) gems.get(i).x;
+            int y = (int) gems.get(i).y;
+            if (!field.cells[y][x].modif) {
+                if (isOnField(x - 1, y))
+                    if (m[y][x - 1] != 1)
+                        m[y][x - 1] = 2;
+                if (isOnField(x + 1, y))
+                    if (m[y][x + 1] != 1)
+                        m[y][x + 1] = 2;
+                if (isOnField(x, y - 1))
+                    if (m[y - 1][x] != 1)
+                        m[y - 1][x] = 2;
+                if (isOnField(x, y + 1))
+                    if (m[y + 1][x] != 1)
+                        m[y + 1][x] = 2;
+            }
+            m[y][x] = 1;
+        }
+
+        Array<Vector2> arrV = new Array<Vector2>();
+        for (int i = 0; i < field.height; i++)
+            for (int j = 0; j < field.width; j++) {
+                if (m[i][j] == 2) {
+                    Vector2 v = new Vector2(j, i);
+                    arrV.add(v);
+                }
+            }
+
+        for (int i = 0; i < gems.size; i++) {
+            int x = (int) gems.get(i).x;
+            int y = (int) gems.get(i).y;
+            if (field.cells[y][x].modif) {
+                if (field.cells[y][x].chain > 0) {
+                    field.cells[y][x].chain--;
+                    if (field.cells[y][x].chain == 0)
+                        field.cells[y][x].modif = false;
+                } else {
+                    if (field.cells[y][x].ice > 0) {
+                        field.cells[y][x].ice--;
+                        if (field.cells[y][x].ice == 0)
+                            field.cells[y][x].modif = false;
+                    }
+                }
+            } else {
+                field.cells[y][x].setInitial();
+                removeChip(x, y);
+                if (field.backCells[y][x] > 0)
+                    field.backCells[y][x]--;
+            }
+        }
+
+        for (int i = 0; i < arrV.size; i++) {
+            int x = (int) arrV.get(i).x;
+            int y = (int) arrV.get(i).y;
+            if (field.cells[y][x] != null) {
+                if (field.cells[y][x].modif) {
+                    if (field.cells[y][x].gold) {
+                        field.cells[y][x].setInitial();
+                        removeChip(x, y);
+                    } else {
+                        if (field.cells[y][x].box > 0) {
+                            field.cells[y][x].box--;
+                            if (field.cells[y][x].box == 0) {
+                                if (field.cells[y][x].value == 0) {
+                                    field.cells[y][x].setInitial();
+                                    removeChip(x, y);
+                                } else
+                                if (field.cells[y][x].ice == 0)
+                                    field.cells[y][x].modif = false;
+                            }
+                        } else {
+                            if (field.cells[y][x].dirt > 0) {
+                                field.cells[y][x].dirt--;
+                                if (field.cells[y][x].dirt == 0) {
+                                    if (field.cells[y][x].value == 0) {
+                                        field.cells[y][x].setInitial();
+                                        removeChip(x, y);
+                                    } else
+                                        field.cells[y][x].modif = false;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    if (field.cells[y][x].value == 12) {
+                        field.cells[y][x].setInitial();
+                        removeChip(x, y);
+                    }
+                }
+            }
+        }
+    }
+
+
+
+    private Array<Vector2> explodeWholeField() {
+        for (int i = 0; i < field.height; i++)
+            for (int j = 0; j < field.width; j++) {
+                explosionMatrix[i][j] = 0;
+                expBlockMatrix[i][j] = 0;
+            }
+
+        for (int i = 0; i < field.height; i++)
+            for (int j = 0; j < field.width; j++) {
+                explode(j, i);
+            }
+
+        Array<Vector2> res = new Array<Vector2>();
+        for (int i = 0; i < field.height; i++)
+            for (int j = 0; j < field.width; j++) {
+                if (explosionMatrix[i][j] == 1) {
+                    Vector2 v = new Vector2(j, i);
+                    res.add(v);
+                }
+            }
+
+        return res;
     }
 
 
@@ -960,7 +1175,6 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
         }
 
         // if isSwap
-        //...
         if (isSwap) {
             int sg1x = (int) swappingGem1.x;
             int sg1y = (int) swappingGem1.y;
@@ -1059,7 +1273,7 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
                         if (superBonusValue == 2) {
                             expMult = 0;
                             explosionScore = 0;
-                            Array<Vector2> arrV = explodeWholeField;
+                            Array<Vector2> arrV = explodeWholeField();
                             removeExpCells(arrV);
                             explosionBarValue = explosionBarValue + explosionScore * expMult;
                             removeChip(sg1x, sg1y);
@@ -1339,28 +1553,6 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        // test
-        {
-            if (fieldArea.contains(screenX * game.scaleCoef, screenY * game.scaleCoef)) {
-                matches = field.findMatches(changedCells);
-                int fx = (int) ((screenX * game.scaleCoef - fieldArea.x) / CH);
-                int fy = (int) ((screenY * game.scaleCoef - fieldArea.y) / CH);
-                Gdx.app.log("GameInfo", "in the area (" + fx + ", " + fy + ")");
-                /*
-                if (fx >= 0 && fx < field.width && fy >= 0 && fy < field.height) {
-                    Array<Vector2> arrV = new Array<Vector2>();
-                    Vector2 v = new Vector2(fx, fy);
-                    arrV.add(v);
-                    matches = field.findMatches(arrV);
-                }
-                */
-            } else {
-                //field.shuffle();
-                //updateAllChips();
-                //possibleMatches = field.findPossibleMatches();
-            }
-        }
-        //
         return false;
     }
 
@@ -1438,6 +1630,20 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
 
     @Override
     public boolean longPress(float x, float y) {
+        if (fieldArea.contains(x * game.scaleCoef, y * game.scaleCoef)) {
+            tx = x;
+            ty = y;
+            int fx = (int) ((x * game.scaleCoef - fieldArea.x) / CH);
+            int fy = (int) ((y * game.scaleCoef - fieldArea.y) / CH);
+
+            if (isOnField(fx, fy)) {
+                field.cells[fy][fx].setInitial();
+                field.cells[fy][fx].value = 8;
+                Chip chip = getChip(fx, fy);
+                if (chip != null)
+                    chip.cell.copy(field.cells[fy][fx]);
+            }
+        }
         return false;
     }
 
