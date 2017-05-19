@@ -126,8 +126,15 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
     Sprite sprite;
 
     private float tx, ty;
+    private boolean isGest;
 
     private Random random = new Random();
+
+    private float dblClickTime = 0;
+    private final float DBL_CLICK_MAX_TIME = 0.5f;
+    private int dbcX;
+    private int dbcY;
+    private boolean isClick = false;
 
     static Comparator<Chip> chipSortForDraw = new Comparator<Chip>() {
         public int compare(Chip c1, Chip c2) {
@@ -230,6 +237,7 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
         hintTime = 0f;
         isGem1Selected = false;
         isGem2Selected = false;
+        isGest = false;
         swapPhase = 0;
         if (field.level.lType == Mach3Game.LevelType.ltSteps)
             levelSteps = field.level.count;
@@ -559,6 +567,7 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
                                 if (isOnField(j + 1, i - 1))
                                     if (isActive(field.cells[i - 1][j + 1]))
                                         value = 4;
+                                break;
                         }
                     } else {
                         if (isActive(cell))
@@ -905,30 +914,29 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
                                 if (cell.value == 0) {
                                     cell.setInitial();
                                     removeChip(x, y);
-                                } else
-                                    if (cell.ice == 0)
+                                } else if (cell.ice == 0)
+                                    cell.modif = false;
+                            }
+                        }else {
+                            if (cell.dirt > 0) {
+                                cell.dirt--;
+                                if (cell.dirt == 0) {
+                                    if (cell.value == 0) {
+                                        cell.setInitial();
+                                        removeChip(x, y);
+                                    } else
                                         cell.modif = false;
+                                }
                             } else {
-                                if (cell.dirt > 0) {
-                                    cell.dirt--;
-                                    if (cell.dirt == 0) {
-                                        if (cell.value == 0) {
-                                            cell.setInitial();
-                                            removeChip(x, y);
-                                        } else
-                                            cell.modif = false;
-                                    }
+                                if (cell.chain > 0) {
+                                    cell.chain--;
+                                    if (cell.chain == 0)
+                                        cell.modif = false;
                                 } else {
-                                    if (cell.chain > 0) {
-                                        cell.chain--;
-                                        if (cell.chain == 0)
+                                    if (cell.ice > 0) {
+                                        cell.ice--;
+                                        if (cell.ice == 0)
                                             cell.modif = false;
-                                    } else {
-                                        if (cell.ice > 0) {
-                                            cell.ice--;
-                                            if (cell.ice == 0)
-                                                cell.modif = false;
-                                        }
                                     }
                                 }
                             }
@@ -1292,6 +1300,8 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
                         chip1.layer = 0;
                     if (chip2 != null)
                         chip2.layer = 0;
+
+                    levelSteps--;
                 } else {
                     if (swapPhase == 1) {
                         isSwap = false;
@@ -1448,6 +1458,9 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
         }
 
         levelTime = levelTime - delta;
+        dblClickTime = dblClickTime + delta;
+        if (dblClickTime > DBL_CLICK_MAX_TIME)
+            isClick = false;
     }
 
 
@@ -1509,6 +1522,13 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
             game.font.draw(batch, "PM: " + possibleMatches.size, 30, 65);
             game.font.draw(batch, "M: " + matches.size, 30, 110);
             game.font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), game.gameWidth - 190, 20);
+
+            if (field.level.lType == Mach3Game.LevelType.ltSteps) {
+                game.font.draw(batch, "" + levelSteps, 30, 155);
+            } else {
+                int val = (int) levelTime;
+                game.font.draw(batch, val / 60 + ":" + val % 60, 30, 155);
+            }
         }
         batch.end();
     }
@@ -1585,12 +1605,49 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
     @Override
     public boolean touchDown(float x, float y, int pointer, int button) {
         if (fieldArea.contains(x * game.scaleCoef, y * game.scaleCoef)) {
-            tx = x;
-            ty = y;
+            tx = 0;
+            ty = 0;
+            isGest = false;
             int fx = (int) ((x * game.scaleCoef - fieldArea.x) / CH);
             int fy = (int) ((y * game.scaleCoef - fieldArea.y) / CH);
 
             if (isOnField(fx, fy)) {
+
+                // dblClick
+                if (!isClick) {
+                    isClick = true;
+                    dbcX = fx;
+                    dbcY = fy;
+                    dblClickTime = 0f;
+                } else {
+                    isClick = false;
+                    if (dbcX == fx && dbcY == fy) {
+                        Chip chip = getChip(dbcX, dbcY);
+                        if (chip != null) {
+                            Cell cell = field.cells[((int) chip.cellPos.y)][((int) chip.cellPos.x)];
+                            if (cell.modif == false && cell.value >= 7 && cell.value <= 10) {
+                                for (int i = 0; i < field.height; i++)
+                                    for (int j = 0; j < field.width; j++)
+                                        expBlockMatrix[i][j] = 0;
+                                expMult = 0;
+                                explosionScore = 0;
+                                Array<Vector2> arrV = buildExplosionMatrix(dbcX, dbcY);
+                                removeExpCells(arrV);
+
+                                explosionBarValue = explosionBarValue + explosionScore * expMult;
+                                if (explosionBarValue >= EXPLOSION_BAR_MAX_VALUE) {
+                                    //...
+                                }
+
+                                isGem1Selected = false;
+                                isGem2Selected = false;
+
+                                levelSteps--;
+                            }
+                        }
+                    }
+                }
+                //
 
                 // swap
                 if (isGem1Selected) {
@@ -1654,6 +1711,47 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
 
     @Override
     public boolean pan(float x, float y, float deltaX, float deltaY) {
+        if (!isGest) {
+            tx += deltaX;
+            ty += deltaY;
+            Gdx.app.log("GameInfo", tx + ", " + ty);
+            int r = 30;
+            if (Math.abs(tx) > r || Math.abs(ty) > r) {
+                isGest = true;
+                int dx = 0;
+                int dy = 0;
+                if (Math.abs(tx) > r) {
+                    if (tx > r)
+                        dx = 1;
+                    else
+                        dx = -1;
+                } else {
+                    if (Math.abs(ty) > r) {
+                        if (ty > r)
+                            dy = 1;
+                        else
+                            dy = -1;
+                    }
+                }
+                if (isGem1Selected) {
+                    int fx = (int) (gem1.x + dx);
+                    int fy = (int) (gem1.y + dy);
+                    if (isOnField(fx, fy)) {
+                        if (field.cells[fy][fx] != null) {
+                            if (!field.cells[fy][fx].modif) {
+                                if ((Math.abs(gem1.x - fx) == 1 && Math.abs(gem1.y - fy) == 0) ||
+                                        (Math.abs(gem1.x - fx) == 0 && Math.abs(gem1.y - fy) == 1)) {
+                                    gem2.x = fx;
+                                    gem2.y = fy;
+                                    isGem2Selected = true;
+                                } else
+                                    isGem1Selected = false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
         return false;
     }
 
@@ -1673,4 +1771,3 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
     }
     //endregion
 }
-
