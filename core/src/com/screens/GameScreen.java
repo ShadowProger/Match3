@@ -1714,7 +1714,7 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
         if (!isGest) {
             tx += deltaX;
             ty += deltaY;
-            Gdx.app.log("GameInfo", tx + ", " + ty);
+            //Gdx.app.log("GameInfo", tx + ", " + ty);
             int r = 30;
             if (Math.abs(tx) > r || Math.abs(ty) > r) {
                 isGest = true;

@@ -33,7 +33,11 @@ public class Match3 extends Game {
     public Texture tBackground;
     public TextureAtlas aBounds;
     public TextureAtlas aTiles;
+    public TextureAtlas aAtlas;
     public BitmapFont font;
+    public BitmapFont font2;
+    public BitmapFont font3;
+    public BitmapFont font4;
 
     public float gameWidth;
     public float gameHeight;
@@ -43,6 +47,10 @@ public class Match3 extends Game {
 
     public FieldParam fParam;
     public PossibleMatchPatterns PMPatterns;
+
+    public int levelsCount;
+    public Array<Vector2> levelsPosition = new Array<Vector2>();
+    public int currentLevel;
 
     @Override
     public void create () {
@@ -64,8 +72,9 @@ public class Match3 extends Game {
 
         loadAssets();
         loadPMPatterns();
+        loadLevelsPosition();
 
-
+        currentLevel = 10;
 
         this.setScreen(new MapScreen(this));
         //this.setScreen(new GameScreen(this));
@@ -76,7 +85,11 @@ public class Match3 extends Game {
         tBackground = new Texture(Gdx.files.internal("Data\\Pictures\\Background.png"));
         aBounds = new TextureAtlas(Gdx.files.internal("Data\\Pictures\\Bounds.atlas"));
         aTiles = new TextureAtlas(Gdx.files.internal("Data\\Pictures\\Tiles.atlas"));
+        aAtlas = new TextureAtlas(Gdx.files.internal("Data\\Pictures\\Atlas.atlas"));
         font = new BitmapFont(Gdx.files.internal("Data\\Font\\WhiteFont.fnt"), true);
+        font2 = new BitmapFont(Gdx.files.internal("Data\\Font\\FilmotypeMajor_33.fnt"), true);
+        font3 = new BitmapFont(Gdx.files.internal("Data\\Font\\FilmotypeMajor_40.fnt"), true);
+        font4 = new BitmapFont(Gdx.files.internal("Data\\Font\\FilmotypePower.fnt"), true);
     }
 
     public void loadPMPatterns() {
@@ -176,6 +189,26 @@ public class Match3 extends Game {
             PMPatterns.up7 = count;
             count++;
             PMPatterns.down7 = count;
+
+            Gdx.app.log("INFO", "Load is Successful");
+        }
+        catch (IOException ex) {
+            Gdx.app.log("INFO", "Load is Unsuccessful");
+        }
+    }
+
+    public void loadLevelsPosition() {
+        FileHandle file = Gdx.files.internal("Data\\LevelsPosition.prm");
+
+        try (DataInputStream dis = new DataInputStream(file.read())) {
+            levelsCount = dis.readInt();
+
+            for (int i = 0; i < levelsCount; i++) {
+                Vector2 v = new Vector2();
+                v.x = dis.readInt();
+                v.y = dis.readInt();
+                levelsPosition.add(v);
+                }
 
             Gdx.app.log("INFO", "Load is Successful");
         }
