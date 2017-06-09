@@ -3,115 +3,164 @@ Atlas.png
 format: RGBA8888
 filter: Nearest,Nearest
 repeat: none
+AgainWindow
+  rotate: false
+  xy: 1, 614
+  size: 614, 369
+  orig: 614, 369
+  offset: 0, 0
+  index: -1
 StartWindow
   rotate: false
-  xy: 1, 100
+  xy: 1, 210
   size: 580, 402
   orig: 580, 402
   offset: 0, 0
   index: -1
 WinWindow
   rotate: false
-  xy: 583, 100
+  xy: 617, 581
   size: 580, 402
   orig: 580, 402
   offset: 0, 0
   index: -1
 CloseWindow_75p
   rotate: false
-  xy: 1165, 186
+  xy: 1199, 667
   size: 390, 316
   orig: 390, 316
   offset: 0, 0
   index: -1
+EndLevelWindow
+  rotate: false
+  xy: 1591, 720
+  size: 390, 263
+  orig: 390, 263
+  offset: 0, 0
+  index: -1
+Info
+  rotate: false
+  xy: 583, 151
+  size: 138, 428
+  orig: 138, 428
+  offset: 0, 0
+  index: -1
 CompletedLevel
   rotate: false
-  xy: 1557, 342
+  xy: 1, 48
   size: 160, 160
   orig: 160, 160
   offset: 0, 0
   index: -1
 CurrentLevel
   rotate: false
-  xy: 1719, 342
+  xy: 723, 419
   size: 160, 160
   orig: 160, 160
   offset: 0, 0
   index: -1
 LockedLevel
   rotate: false
-  xy: 1881, 342
+  xy: 163, 48
   size: 160, 160
   orig: 160, 160
   offset: 0, 0
   index: -1
+Bar
+  rotate: false
+  xy: 723, 280
+  size: 137, 137
+  orig: 137, 137
+  offset: 0, 0
+  index: -1
+SuperBonus
+  rotate: false
+  xy: 885, 442
+  size: 137, 137
+  orig: 137, 137
+  offset: 0, 0
+  index: -1
+btnClose
+  rotate: false
+  xy: 1199, 605
+  size: 60, 60
+  orig: 60, 60
+  offset: 0, 0
+  index: -1
 Gold_Icon
   rotate: false
-  xy: 1, 48
+  xy: 1591, 668
   size: 50, 50
   orig: 50, 50
   offset: 0, 0
   index: -1
 Back_Icon
   rotate: false
-  xy: 1165, 139
+  xy: 1983, 938
   size: 45, 45
   orig: 45, 45
   offset: 0, 0
   index: -1
 Blue
   rotate: false
-  xy: 1557, 295
+  xy: 1, 1
   size: 45, 45
   orig: 45, 45
   offset: 0, 0
   index: -1
 Green
   rotate: false
-  xy: 1, 1
+  xy: 325, 163
   size: 45, 45
   orig: 45, 45
   offset: 0, 0
   index: -1
 Item
   rotate: false
-  xy: 53, 53
+  xy: 723, 233
   size: 45, 45
   orig: 45, 45
   offset: 0, 0
   index: -1
 Pink
   rotate: false
-  xy: 1212, 139
+  xy: 1024, 534
   size: 45, 45
   orig: 45, 45
   offset: 0, 0
   index: -1
 Red
   rotate: false
-  xy: 1557, 248
+  xy: 1261, 620
   size: 45, 45
   orig: 45, 45
   offset: 0, 0
   index: -1
 White
   rotate: false
-  xy: 1604, 295
+  xy: 1643, 673
   size: 45, 45
   orig: 45, 45
   offset: 0, 0
   index: -1
 Yellow
   rotate: false
-  xy: 100, 53
+  xy: 1983, 891
   size: 45, 45
   orig: 45, 45
   offset: 0, 0
   index: -1
 Steps_Icon
   rotate: false
-  xy: 1259, 141
+  xy: 48, 3
   size: 40, 43
   orig: 40, 43
+  offset: 0, 0
+  index: -1
+Complete
+  rotate: false
+  xy: 583, 583
+  size: 31, 29
+  orig: 31, 29
   offset: 0, 0
   index: -1

@@ -1,10 +1,12 @@
 package com.screens;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -31,21 +33,44 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
     private SpriteBatch batch;
     private InputMultiplexer IM;
 
-    TextureRegion rgBackground;
-    TextureRegion[] rgBounds;
-    TextureRegion[] rgCellValues;
-    TextureRegion rgBack_0;
-    TextureRegion rgBack_1;
-    TextureRegion rgBack_2;
-    TextureRegion rgBox_0;
-    TextureRegion rgBox_1;
-    TextureRegion rgChain_0;
-    TextureRegion rgChain_1;
-    TextureRegion rgDirt_0;
-    TextureRegion rgDirt_1;
-    TextureRegion rgGold;
-    TextureRegion rgIce_0;
-    TextureRegion rgIce_1;
+    private GlyphLayout layout;
+
+    private TextureRegion rgBackground;
+    private TextureRegion[] rgBounds;
+    private TextureRegion[] rgCellValues;
+    private TextureRegion rgBack_0;
+    private TextureRegion rgBack_1;
+    private TextureRegion rgBack_2;
+    private TextureRegion rgBox_0;
+    private TextureRegion rgBox_1;
+    private TextureRegion rgChain_0;
+    private TextureRegion rgChain_1;
+    private TextureRegion rgDirt_0;
+    private TextureRegion rgDirt_1;
+    private TextureRegion rgGold;
+    private TextureRegion rgIce_0;
+    private TextureRegion rgIce_1;
+
+    private TextureRegion rgInfo;
+    private TextureRegion rgSuperBonus;
+    private TextureRegion rgBar;
+    private TextureRegion rgBar2;
+    private TextureRegion rgStepsIcon;
+    private TextureRegion rgWhiteIcon;
+    private TextureRegion rgRedIcon;
+    private TextureRegion rgGreenIcon;
+    private TextureRegion rgBlueIcon;
+    private TextureRegion rgYellowIcon;
+    private TextureRegion rgPinkIcon;
+    private TextureRegion rgItemIcon;
+    private TextureRegion rgGoldIcon;
+    private TextureRegion rgBackIcon;
+
+    private TextureRegion rgAgainWindow;
+    private TextureRegion rgBtnClose;
+    private TextureRegion rgEndLevelWindow;
+    private TextureRegion rgComplete;
+    private TextureRegion rgWinWindow;
 
     private final int CH = 60;
     private Field field;
@@ -64,6 +89,7 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
     private int explosionBarValue;
     private int expMult;
     private int superBonusValue;
+    private int superBonusCount = 0;
     private boolean isGem1Selected;
     private boolean isGem2Selected;
     private int swapPhase;
@@ -136,6 +162,43 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
     private int dbcY;
     private boolean isClick = false;
 
+    private Vector2 infoPos;
+    private Vector2 superBonusPos;
+    private Vector2 iconPos1;
+    private Vector2 iconPos2;
+    private Vector2 iconPos3;
+    private Vector2 stepTimePos;
+
+    private Vector2 againWindowPos;
+    private Vector2 endLevelWindowPos;
+    private Vector2 winWindowPos;
+
+    private Rectangle btnClose;
+    private Rectangle btnAgain;
+    private Rectangle btnYes;
+    private Rectangle btnNo;
+    private Rectangle btnOK;
+    private Rectangle btnCross1;
+    private Rectangle btnCross2;
+
+    private int mission1Max;
+    private int mission2Max;
+    private int mission1Count;
+    private int mission2Count;
+
+    private int goldCount;
+    private int goldMaxCount;
+    private int dirtCount;
+    private int dirtMaxCount;
+
+    private enum Mode {mGame, mWin, mLose, mShuffle, mGameOver, mClose};
+    private Mode gameMode;
+
+    private Rectangle barRect;
+    private boolean isWin = false;
+
+
+
     static Comparator<Chip> chipSortForDraw = new Comparator<Chip>() {
         public int compare(Chip c1, Chip c2) {
             return Integer.compare(c1.layer, c2.layer);
@@ -156,6 +219,7 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
         Gdx.app.log("GameInfo", "GameScreen: Create");
         this.game = game;
         batch = game.batch;
+        layout = new GlyphLayout();
 
         IM = new InputMultiplexer();
         GestureDetector gd = new GestureDetector(this);
@@ -164,41 +228,121 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
 
         rgBackground = new TextureRegion(game.tBackground,
                 (int)(game.tBackground.getWidth() - game.gameWidth) / 2, 0, (int) game.gameWidth, (int) game.gameHeight);
-        rgBackground.flip(false, true);
+        if (!rgBackground.isFlipY())
+            rgBackground.flip(false, true);
         rgBounds = new TextureRegion[46];
         for (int i = 0; i < 46; i++) {
             rgBounds[i] = game.aBounds.findRegion(i + "");
-            rgBounds[i].flip(false, true);
+            if (!rgBounds[i].isFlipY())
+                rgBounds[i].flip(false, true);
         }
         rgCellValues = new TextureRegion[13];
         for (int i = 0; i < 13; i++) {
             rgCellValues[i] = game.aTiles.findRegion(i + "");
-            rgCellValues[i].flip(false, true);
+            if (!rgCellValues[i].isFlipY())
+                rgCellValues[i].flip(false, true);
         }
         rgBack_0 = game.aTiles.findRegion("Back", 0);
-        rgBack_0.flip(false, true);
+        if (!rgBack_0.isFlipY())
+            rgBack_0.flip(false, true);
         rgBack_1 = game.aTiles.findRegion("Back", 1);
-        rgBack_1.flip(false, true);
+        if (!rgBack_1.isFlipY())
+            rgBack_1.flip(false, true);
         rgBack_2 = game.aTiles.findRegion("Back", 2);
-        rgBack_2.flip(false, true);
+        if (!rgBack_2.isFlipY())
+            rgBack_2.flip(false, true);
         rgBox_0 = game.aTiles.findRegion("Box", 0);
-        rgBox_0.flip(false, true);
+        if (!rgBox_0.isFlipY())
+            rgBox_0.flip(false, true);
         rgBox_1 = game.aTiles.findRegion("Box", 1);
-        rgBox_1.flip(false, true);
+        if (!rgBox_1.isFlipY())
+            rgBox_1.flip(false, true);
         rgChain_0 = game.aTiles.findRegion("Chain", 0);
-        rgChain_0.flip(false, true);
+        if (!rgChain_0.isFlipY())
+            rgChain_0.flip(false, true);
         rgChain_1 = game.aTiles.findRegion("Chain", 1);
-        rgChain_1.flip(false, true);
+        if (!rgChain_1.isFlipY())
+            rgChain_1.flip(false, true);
         rgDirt_0 = game.aTiles.findRegion("Dirt", 0);
-        rgDirt_0.flip(false, true);
+        if (!rgDirt_0.isFlipY())
+            rgDirt_0.flip(false, true);
         rgDirt_1 = game.aTiles.findRegion("Dirt", 1);
-        rgDirt_1.flip(false, true);
+        if (!rgDirt_1.isFlipY())
+            rgDirt_1.flip(false, true);
         rgGold = game.aTiles.findRegion("Gold");
-        rgGold.flip(false, true);
+        if (!rgGold.isFlipY())
+            rgGold.flip(false, true);
         rgIce_0 = game.aTiles.findRegion("Ice", 0);
-        rgIce_0.flip(false, true);
+        if (!rgIce_0.isFlipY())
+            rgIce_0.flip(false, true);
         rgIce_1 = game.aTiles.findRegion("Ice", 1);
-        rgIce_1.flip(false, true);
+        if (!rgIce_1.isFlipY())
+            rgIce_1.flip(false, true);
+
+        rgInfo = game.aAtlas.findRegion("Info");
+        if (!rgInfo.isFlipY())
+            rgInfo.flip(false, true);
+        rgSuperBonus = game.aAtlas.findRegion("SuperBonus");
+        if (!rgSuperBonus.isFlipY())
+            rgSuperBonus.flip(false, true);
+
+        rgBar = game.aAtlas.findRegion("Bar");
+        barRect = new Rectangle(rgBar.getRegionX(), rgBar.getRegionY(), rgBar.getRegionWidth(), rgBar.getRegionHeight());
+        if (!rgBar.isFlipY())
+            rgBar.flip(false, true);
+        else
+            barRect.y -= rgBar.getRegionHeight();
+
+        rgBar2 = new TextureRegion(rgBar.getTexture(), barRect.x, barRect.y, barRect.width, barRect.height);
+        if (!rgBar2.isFlipY())
+            rgBar2.flip(false, true);
+        rgStepsIcon = game.aAtlas.findRegion("Steps_Icon");
+        if (!rgStepsIcon.isFlipY())
+            rgStepsIcon.flip(false, true);
+
+        rgWhiteIcon = game.aAtlas.findRegion("White");
+        if (!rgWhiteIcon.isFlipY())
+            rgWhiteIcon.flip(false, true);
+        rgRedIcon = game.aAtlas.findRegion("Red");
+        if (!rgRedIcon.isFlipY())
+            rgRedIcon.flip(false, true);
+        rgGreenIcon = game.aAtlas.findRegion("Green");
+        if (!rgGreenIcon.isFlipY())
+            rgGreenIcon.flip(false, true);
+        rgBlueIcon = game.aAtlas.findRegion("Blue");
+        if (!rgBlueIcon.isFlipY())
+            rgBlueIcon.flip(false, true);
+        rgYellowIcon = game.aAtlas.findRegion("Yellow");
+        if (!rgYellowIcon.isFlipY())
+            rgYellowIcon.flip(false, true);
+        rgPinkIcon = game.aAtlas.findRegion("Pink");
+        if (!rgPinkIcon.isFlipY())
+            rgPinkIcon.flip(false, true);
+        rgItemIcon = game.aAtlas.findRegion("Item");
+        if (!rgItemIcon.isFlipY())
+            rgItemIcon.flip(false, true);
+        rgGoldIcon = game.aAtlas.findRegion("Gold_Icon");
+        if (!rgGoldIcon.isFlipY())
+            rgGoldIcon.flip(false, true);
+        rgBackIcon = game.aAtlas.findRegion("Back_Icon");
+        if (!rgBackIcon.isFlipY())
+            rgBackIcon.flip(false, true);
+
+        rgAgainWindow = game.aAtlas.findRegion("AgainWindow");
+        if (!rgAgainWindow.isFlipY())
+            rgAgainWindow.flip(false, true);
+        rgBtnClose = game.aAtlas.findRegion("btnClose");
+        if (!rgBtnClose.isFlipY())
+            rgBtnClose.flip(false, true);
+        rgEndLevelWindow = game.aAtlas.findRegion("EndLevelWindow");
+        if (!rgEndLevelWindow.isFlipY())
+            rgEndLevelWindow.flip(false, true);
+        rgComplete = game.aAtlas.findRegion("Complete");
+        if (!rgComplete.isFlipY())
+            rgComplete.flip(false, true);
+        rgWinWindow = game.aAtlas.findRegion("WinWindow");
+        if (!rgWinWindow.isFlipY())
+            rgWinWindow.flip(false, true);
 
         sprite = new Sprite(rgGold);
 
@@ -211,6 +355,31 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
         int y = (int) (playArea.y + (playArea.height - h) / 2);
         fieldArea = new Rectangle(x, y, w, h);
         chipsZero = new Vector2(fieldArea.x + CH / 2, fieldArea.y + CH / 2);
+
+        infoPos = new Vector2(10, 50);
+        superBonusPos = new Vector2(8, 500);
+        iconPos1 = new Vector2(infoPos.x + 70, infoPos.y + 115);
+        iconPos2 = new Vector2(infoPos.x + 70, infoPos.y + 50);
+        iconPos3 = new Vector2(infoPos.x + 70, infoPos.y + 165);
+        stepTimePos = new Vector2(infoPos.x + 40, infoPos.y + 280);
+
+        againWindowPos = new Vector2();
+        againWindowPos.x = (game.gameWidth - rgAgainWindow.getRegionWidth()) / 2;
+        againWindowPos.y = (game.gameHeight - rgAgainWindow.getRegionHeight()) / 2;
+        endLevelWindowPos = new Vector2();
+        endLevelWindowPos.x = (game.gameWidth - rgEndLevelWindow.getRegionWidth()) / 2;
+        endLevelWindowPos.y = (game.gameHeight - rgEndLevelWindow.getRegionHeight()) / 2;
+        winWindowPos = new Vector2();
+        winWindowPos.x = (game.gameWidth - rgWinWindow.getRegionWidth()) / 2;
+        winWindowPos.y = (game.gameHeight - rgWinWindow.getRegionHeight()) / 2;
+
+        btnClose = new Rectangle(10, 650, 60, 60);
+        btnAgain = new Rectangle(againWindowPos.x + 180, againWindowPos.y + 286, 250, 60);
+        btnCross1 = new Rectangle(againWindowPos.x + 563, againWindowPos.y + 55, 50, 50);
+        btnYes = new Rectangle(endLevelWindowPos.x + 40, endLevelWindowPos.y + 186, 148, 54);
+        btnNo = new Rectangle(endLevelWindowPos.x + 202, endLevelWindowPos.y + 186, 148, 54);
+        btnOK = new Rectangle(winWindowPos.x + 167, winWindowPos.y + 315, 240, 65);
+        btnCross2 = new Rectangle(winWindowPos.x + 528, winWindowPos.y + 57, 50, 50);
 
         changedCells = new Array<Vector2>();
         for (int i = 0; i < field.height; i++)
@@ -231,6 +400,35 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
 
         addAllChips();
 
+        mission1Count = 0;
+        mission2Count = 0;
+        goldCount = 0;
+        dirtCount = 0;
+
+        mission1Max = field.level.mission1.count;
+        switch (field.level.mission1.mType) {
+            case mtGold:
+                goldMaxCount = mission1Max;
+                break;
+            case mtDirt:
+                dirtMaxCount = mission1Max;
+                break;
+        }
+        if (field.level.mission2.mType != Mach3Game.MissionType.mtNone) {
+            mission2Max = field.level.mission2.count;
+            switch (field.level.mission2.mType) {
+                case mtGold:
+                    goldMaxCount = mission2Max;
+                    break;
+                case mtDirt:
+                    dirtMaxCount = mission2Max;
+                    break;
+            }
+        }
+
+        isWin = false;
+        superBonusCount = 0;
+        gameMode = Mode.mGame;
         explosionBarValue = 0;
         expMult = 0;
         superBonusValue = 0;
@@ -383,6 +581,21 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
 
     private void addChip(Chip chip) {
         chips.add(chip);
+    }
+
+
+
+    private void addSuperBonus() {
+        Chip chip = null;
+        Cell cell = null;
+        boolean f = false;
+        do {
+            int n = random.nextInt(chips.size());
+            chip = chips.get(n);
+            cell = field.cells[((int) chip.cellPos.y)][((int) chip.cellPos.x)];
+            f = !cell.modif && cell.value >= 1 && cell.value <= 6;
+        } while (!f);
+        cell.value = 11;
     }
 
 
@@ -835,8 +1048,10 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
                 } else {
                     field.cells[y][x].setInitial();
                     removeChip(x, y);
-                    if (field.backCells[y][x] > 0)
+                    if (field.backCells[y][x] > 0) {
                         field.backCells[y][x]--;
+                        dirtCount++;
+                    }
                 }
             }
 
@@ -858,6 +1073,7 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
                     if (field.cells[y][x].gold) {
                         field.cells[y][x].setInitial();
                         removeChip(x, y);
+                        goldCount++;
                     } else {
                         if (field.cells[y][x].box > 0) {
                             field.cells[y][x].box--;
@@ -907,6 +1123,7 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
                     if (cell.gold) {
                         cell.setInitial();
                         removeChip(x, y);
+                        goldCount++;
                     } else {
                         if (cell.box > 0) {
                             cell.box--;
@@ -944,13 +1161,17 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
                     }
                 } else {
                     if (cell.value == 0) {
-                        if (field.backCells[y][x] > 0)
+                        if (field.backCells[y][x] > 0) {
                             field.backCells[y][x]--;
+                            dirtCount++;
+                        }
                     } else
                         if (!(cell.value == 11 || cell.value == 13)) {
                             cell.setInitial();
-                            if (field.backCells[y][x] > 0)
+                            if (field.backCells[y][x] > 0) {
                                 field.backCells[y][x]--;
+                                dirtCount++;
+                            }
                             removeChip(x, y);
                         }
                 }
@@ -1013,8 +1234,10 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
             } else {
                 field.cells[y][x].setInitial();
                 removeChip(x, y);
-                if (field.backCells[y][x] > 0)
+                if (field.backCells[y][x] > 0) {
                     field.backCells[y][x]--;
+                    dirtCount++;
+                }
             }
         }
 
@@ -1026,6 +1249,7 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
                     if (field.cells[y][x].gold) {
                         field.cells[y][x].setInitial();
                         removeChip(x, y);
+                        goldCount++;
                     } else {
                         if (field.cells[y][x].box > 0) {
                             field.cells[y][x].box--;
@@ -1157,6 +1381,12 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
 
 
 
+    private void setMode(Mode gameMode) {
+        this.gameMode = gameMode;
+    }
+
+
+
     public void update(float delta) {
         spawnNewChips();
         buildMoveMatrix();
@@ -1247,6 +1477,8 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
                             if (explosionBarValue >= EXPLOSION_BAR_MAX_VALUE) {
                                 // Появление супер-бонуса
                                 //...
+                                explosionBarValue -= EXPLOSION_BAR_MAX_VALUE;
+                                superBonusCount++;
                             }
 
                             isBang = false;
@@ -1325,6 +1557,11 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
             }
         }
 
+        if (superBonusCount > 0) {
+            addSuperBonus();
+            superBonusCount--;
+        }
+
         proc();
 
         if (superBonusValue == 0) {
@@ -1342,6 +1579,72 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
 
         possibleMatches = field.findPossibleMatches();
         if (isAllOnPlace() && !isEmptySpawnPoints()) {
+
+            if (gameMode == Mode.mGameOver) {
+                if (field.level.lType == Mach3Game.LevelType.ltSteps) {
+                    if (levelSteps <= 0) {
+                        setMode(Mode.mLose);
+                    }
+                } else {
+                    if (levelTime <= 0) {
+                        setMode(Mode.mLose);
+                    }
+                }
+                if (game.fParam.level.mission2.mType == Mach3Game.MissionType.mtNone) {
+                    switch (game.fParam.level.mission1.mType) {
+                        case mtDirt:
+                            if (dirtCount >= mission1Max) {
+                                setMode(Mode.mWin);
+                            }
+                            break;
+                        case mtGold:
+                            if (goldCount >= mission1Max) {
+                                setMode(Mode.mWin);
+                            }
+                            break;
+                    }
+                } else {
+                    boolean m1 = false;
+                    boolean m2 = false;
+                    switch (game.fParam.level.mission1.mType) {
+                        case mtDirt:
+                            if (dirtCount >= mission1Max) {
+                                m1 = true;
+                            }
+                            break;
+                        case mtGold:
+                            if (goldCount >= mission1Max) {
+                                m1 = true;
+                            }
+                            break;
+                    }
+                    switch (game.fParam.level.mission2.mType) {
+                        case mtDirt:
+                            if (dirtCount >= mission2Max) {
+                                m2 = true;
+                            }
+                            break;
+                        case mtGold:
+                            if (goldCount >= mission2Max) {
+                                m2 = true;
+                            }
+                            break;
+                    }
+                    if (m1 && m2) {
+                        setMode(Mode.mWin);
+                    }
+                }
+                if (gameMode == Mode.mWin) {
+                    if (!isWin) {
+                        isWin = true;
+                        if (game.currentLevel == game.selectedLevel) {
+                            game.currentLevel++;
+                            game.saveCurrentLevel();
+                        }
+                    }
+                }
+            }
+
             while (possibleMatches.size == 0) {
                 field.shuffle();
                 possibleMatches = field.findPossibleMatches();
@@ -1457,7 +1760,68 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
             }
         }
 
+        //
+        if (gameMode == Mode.mGame) {
+            if (field.level.lType == Mach3Game.LevelType.ltSteps) {
+                if (levelSteps <= 0) {
+                    setMode(Mode.mGameOver);
+                }
+            } else {
+                if (levelTime <= 0) {
+                    setMode(Mode.mGameOver);
+                }
+            }
+
+            if (game.fParam.level.mission2.mType == Mach3Game.MissionType.mtNone) {
+                switch (game.fParam.level.mission1.mType) {
+                    case mtDirt:
+                        if (dirtCount >= mission1Max) {
+                            setMode(Mode.mGameOver);
+                        }
+                        break;
+                    case mtGold:
+                        if (goldCount >= mission1Max) {
+                            setMode(Mode.mGameOver);
+                        }
+                        break;
+                }
+            } else {
+                boolean m1 = false;
+                boolean m2 = false;
+                switch (game.fParam.level.mission1.mType) {
+                    case mtDirt:
+                        if (dirtCount >= mission1Max) {
+                            m1 = true;
+                        }
+                        break;
+                    case mtGold:
+                        if (goldCount >= mission1Max) {
+                            m1 = true;
+                        }
+                        break;
+                }
+                switch (game.fParam.level.mission2.mType) {
+                    case mtDirt:
+                        if (dirtCount >= mission2Max) {
+                            m2 = true;
+                        }
+                        break;
+                    case mtGold:
+                        if (goldCount >= mission2Max) {
+                            m2 = true;
+                        }
+                        break;
+                }
+                if (m1 && m2) {
+                    setMode(Mode.mGameOver);
+                }
+            }
+        }
+        //
+
         levelTime = levelTime - delta;
+        if (levelTime < 0)
+            levelTime = 0;
         dblClickTime = dblClickTime + delta;
         if (dblClickTime > DBL_CLICK_MAX_TIME)
             isClick = false;
@@ -1518,16 +1882,150 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
                 drawChip(chip);
             }
 
-            game.font.draw(batch, chips.size() + "", 30, 20);
-            game.font.draw(batch, "PM: " + possibleMatches.size, 30, 65);
-            game.font.draw(batch, "M: " + matches.size, 30, 110);
-            game.font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), game.gameWidth - 190, 20);
-
             if (field.level.lType == Mach3Game.LevelType.ltSteps) {
                 game.font.draw(batch, "" + levelSteps, 30, 155);
             } else {
                 int val = (int) levelTime;
                 game.font.draw(batch, val / 60 + ":" + val % 60, 30, 155);
+            }
+
+            batch.draw(rgInfo, infoPos.x, infoPos.y);
+
+            float height = (float) explosionBarValue / (float) EXPLOSION_BAR_MAX_VALUE * barRect.height;
+            int y = (int) (superBonusPos.y + (barRect.height - height));
+
+            rgBar2.setRegion((int) barRect.x, (int) (barRect.y + (barRect.height - height)), (int) barRect.width, (int) height);
+            rgBar2.flip(false, true);
+
+            batch.draw(rgBar2, superBonusPos.x, y);
+
+            batch.draw(rgSuperBonus, superBonusPos.x, superBonusPos.y);
+
+            if (field.level.lType == Mach3Game.LevelType.ltSteps) {
+                batch.draw(rgStepsIcon, stepTimePos.x - rgStepsIcon.getRegionWidth() / 2, stepTimePos.y - rgStepsIcon.getRegionHeight() / 2);
+                String str = levelSteps + "";
+                layout.setText(game.font4, str);
+                game.font4.draw(batch, str, stepTimePos.x + 25, stepTimePos.y - layout.height / 2 - 5);
+            } else {
+                int val = (int) levelTime;
+                int min = val / 60;
+                int sec = val % 60;
+                String str = "";
+                if (sec < 10)
+                    str = min + ":0" + sec;
+                else
+                    str = min + ":" + sec;
+                layout.setText(game.font4, str);
+                game.font4.draw(batch, str, iconPos1.x - layout.width / 2, stepTimePos.y - layout.height / 2);
+            }
+
+            if (game.fParam.level.mission2.mType == Mach3Game.MissionType.mtNone) {
+                TextureRegion reg = rgBackIcon;
+                String str = "";
+                boolean f = false;
+                switch (game.fParam.level.mission1.mType) {
+                    case mtDirt:
+                        reg = rgBackIcon;
+                        str = dirtCount + "";
+                        if (dirtCount >= dirtMaxCount)
+                            f = true;
+                        break;
+                    case mtGold:
+                        reg = rgGoldIcon;
+                        str = goldCount + "";
+                        if (goldCount >= goldMaxCount)
+                            f = true;
+                        break;
+                }
+
+                batch.draw(reg, iconPos1.x - reg.getRegionWidth() / 2, iconPos1.y - reg.getRegionHeight() / 2);
+                if (f) {
+                    batch.draw(rgComplete, iconPos1.x - rgComplete.getRegionWidth() / 2, iconPos1.y + 30);
+                } else {
+                    str = str + "/" + mission1Max;
+                    layout.setText(game.font3, str);
+                    game.font3.draw(batch, str, iconPos1.x - layout.width / 2, iconPos1.y + 30);
+                }
+            } else {
+                TextureRegion reg1 = rgBackIcon;
+                TextureRegion reg2 = rgBackIcon;
+                String str1 = "";
+                String str2 = "";
+                boolean f1 = false;
+                boolean f2 = false;
+                switch (game.fParam.level.mission1.mType) {
+                    case mtDirt:
+                        reg1 = rgBackIcon;
+                        str1 = dirtCount + "";
+                        if (dirtCount >= dirtMaxCount)
+                            f1 = true;
+                        break;
+                    case mtGold:
+                        reg1 = rgGoldIcon;
+                        str1 = goldCount + "";
+                        if (goldCount >= goldMaxCount)
+                            f1 = true;
+                        break;
+                }
+
+                switch (game.fParam.level.mission2.mType) {
+                    case mtDirt:
+                        reg2 = rgBackIcon;
+                        str2 = dirtCount + "";
+                        if (dirtCount >= dirtMaxCount)
+                            f2 = true;
+                        break;
+                    case mtGold:
+                        reg2 = rgGoldIcon;
+                        str2 = goldCount + "";
+                        if (goldCount >= goldMaxCount)
+                            f2 = true;
+                        break;
+                }
+
+                batch.draw(reg1, iconPos2.x - reg1.getRegionWidth() / 2, iconPos2.y - reg1.getRegionHeight() / 2);
+                if (f1) {
+                    batch.draw(rgComplete, iconPos2.x - rgComplete.getRegionWidth() / 2, iconPos2.y + 30);
+                } else {
+                    str1 = str1 + "/" + mission1Max;
+                    layout.setText(game.font2, str1);
+                    game.font2.draw(batch, str1, iconPos2.x - layout.width / 2, iconPos2.y + 30);
+                }
+
+                batch.draw(reg2, iconPos3.x - reg2.getRegionWidth() / 2, iconPos3.y - reg2.getRegionHeight() / 2);
+                if (f2) {
+                    batch.draw(rgComplete, iconPos3.x - rgComplete.getRegionWidth() / 2, iconPos3.y + 30);
+                } else {
+                    str2 = str2 + "/" + mission2Max;
+                    layout.setText(game.font2, str2);
+                    game.font2.draw(batch, str2, iconPos3.x - layout.width / 2, iconPos3.y + 30);
+                }
+            }
+
+            batch.draw(rgBtnClose, btnClose.x, btnClose.y);
+
+            if (gameMode == Mode.mClose) {
+                batch.draw(rgEndLevelWindow, endLevelWindowPos.x, endLevelWindowPos.y);
+            }
+
+            if (gameMode == Mode.mWin) {
+                batch.draw(rgWinWindow, winWindowPos.x, winWindowPos.y);
+                String str = "Уровень " + game.selectedLevel;
+                layout.setText(game.font4, str);
+                int x = (int) (winWindowPos.x + (rgWinWindow.getRegionWidth() - layout.width) / 2);
+                game.font4.draw(batch, str,  x, winWindowPos.y + 15);
+                str = "Вы выполнили\n    все задачи";
+                layout.setText(game.font3, str);
+                x = (int) (winWindowPos.x + (rgWinWindow.getRegionWidth() - layout.width) / 2);
+                game.font3.draw(batch, str,  x, againWindowPos.y + 120);
+            }
+
+            if (gameMode == Mode.mLose) {
+                batch.draw(rgAgainWindow, againWindowPos.x, againWindowPos.y);
+                String str = "Уровень " + game.selectedLevel;
+                layout.setText(game.font4, str);
+                int x = (int) (againWindowPos.x + (rgAgainWindow.getRegionWidth() - layout.width) / 2);
+                game.font4.draw(batch, str,  x, againWindowPos.y + 15);
             }
         }
         batch.end();
@@ -1556,6 +2054,22 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
     //region InputProcessor_Region
     @Override
     public boolean keyDown(int keycode) {
+        if (keycode == Input.Keys.BACK) {
+            switch (gameMode) {
+                case mGame:
+                    setMode(Mode.mClose);
+                    break;
+                case mClose:
+                    setMode(Mode.mGame);
+                    break;
+                case mWin:
+                    game.setScreen(new MapScreen(game));
+                    break;
+                case mLose:
+                    game.setScreen(new MapScreen(game));
+                    break;
+            }
+        }
         return false;
     }
 
@@ -1580,6 +2094,55 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        float sx = 0;
+        float sy = 0;
+
+        switch (gameMode) {
+            case mClose:
+                sx = screenX * game.scaleCoef;
+                sy = screenY * game.scaleCoef;
+
+                if (btnYes.contains(sx, sy)) {
+                    game.setScreen(new MapScreen(game));
+                }
+                if (btnNo.contains(sx, sy)) {
+                    setMode(Mode.mGame);
+                }
+                break;
+
+            case mWin:
+                sx = screenX * game.scaleCoef;
+                sy = screenY * game.scaleCoef;
+
+                if (btnOK.contains(sx, sy)) {
+                    game.setScreen(new MapScreen(game));
+                }
+                if (btnCross2.contains(sx, sy)) {
+                    game.setScreen(new MapScreen(game));
+                }
+                break;
+
+            case mGame:
+                sx = screenX * game.scaleCoef;
+                sy = screenY * game.scaleCoef;
+
+                if (btnClose.contains(sx, sy)) {
+                    setMode(Mode.mClose);
+                }
+                break;
+
+            case mLose:
+                sx = screenX * game.scaleCoef;
+                sy = screenY * game.scaleCoef;
+
+                if (btnAgain.contains(sx, sy)) {
+                    startNewLevel();
+                }
+                if (btnCross1.contains(sx, sy)) {
+                    game.setScreen(new MapScreen(game));
+                }
+                break;
+        }
         return false;
     }
 
@@ -1604,77 +2167,81 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
     //region GestureListener_Region
     @Override
     public boolean touchDown(float x, float y, int pointer, int button) {
-        if (fieldArea.contains(x * game.scaleCoef, y * game.scaleCoef)) {
-            tx = 0;
-            ty = 0;
-            isGest = false;
-            int fx = (int) ((x * game.scaleCoef - fieldArea.x) / CH);
-            int fy = (int) ((y * game.scaleCoef - fieldArea.y) / CH);
+        if (gameMode == Mode.mGame) {
+            if (fieldArea.contains(x * game.scaleCoef, y * game.scaleCoef)) {
+                tx = 0;
+                ty = 0;
+                isGest = false;
+                int fx = (int) ((x * game.scaleCoef - fieldArea.x) / CH);
+                int fy = (int) ((y * game.scaleCoef - fieldArea.y) / CH);
 
-            if (isOnField(fx, fy)) {
+                if (isOnField(fx, fy)) {
 
-                // dblClick
-                if (!isClick) {
-                    isClick = true;
-                    dbcX = fx;
-                    dbcY = fy;
-                    dblClickTime = 0f;
-                } else {
-                    isClick = false;
-                    if (dbcX == fx && dbcY == fy) {
-                        Chip chip = getChip(dbcX, dbcY);
-                        if (chip != null) {
-                            Cell cell = field.cells[((int) chip.cellPos.y)][((int) chip.cellPos.x)];
-                            if (cell.modif == false && cell.value >= 7 && cell.value <= 10) {
-                                for (int i = 0; i < field.height; i++)
-                                    for (int j = 0; j < field.width; j++)
-                                        expBlockMatrix[i][j] = 0;
-                                expMult = 0;
-                                explosionScore = 0;
-                                Array<Vector2> arrV = buildExplosionMatrix(dbcX, dbcY);
-                                removeExpCells(arrV);
+                    // dblClick
+                    if (!isClick) {
+                        isClick = true;
+                        dbcX = fx;
+                        dbcY = fy;
+                        dblClickTime = 0f;
+                    } else {
+                        isClick = false;
+                        if (dbcX == fx && dbcY == fy) {
+                            Chip chip = getChip(dbcX, dbcY);
+                            if (chip != null) {
+                                Cell cell = field.cells[((int) chip.cellPos.y)][((int) chip.cellPos.x)];
+                                if (cell.modif == false && cell.value >= 7 && cell.value <= 10) {
+                                    for (int i = 0; i < field.height; i++)
+                                        for (int j = 0; j < field.width; j++)
+                                            expBlockMatrix[i][j] = 0;
+                                    expMult = 0;
+                                    explosionScore = 0;
+                                    Array<Vector2> arrV = buildExplosionMatrix(dbcX, dbcY);
+                                    removeExpCells(arrV);
 
-                                explosionBarValue = explosionBarValue + explosionScore * expMult;
-                                if (explosionBarValue >= EXPLOSION_BAR_MAX_VALUE) {
-                                    //...
+                                    explosionBarValue = explosionBarValue + explosionScore * expMult;
+                                    if (explosionBarValue >= EXPLOSION_BAR_MAX_VALUE) {
+                                        //...
+                                        explosionBarValue -= EXPLOSION_BAR_MAX_VALUE;
+                                        superBonusCount++;
+                                    }
+
+                                    isGem1Selected = false;
+                                    isGem2Selected = false;
+
+                                    levelSteps--;
                                 }
-
-                                isGem1Selected = false;
-                                isGem2Selected = false;
-
-                                levelSteps--;
                             }
                         }
                     }
-                }
-                //
+                    //
 
-                // swap
-                if (isGem1Selected) {
-                    if (field.cells[fy][fx] != null) {
-                        if (!field.cells[fy][fx].modif) {
-                            if ((Math.abs(gem1.x - fx) == 1 && Math.abs(gem1.y - fy) == 0) ||
-                                    (Math.abs(gem1.x - fx) == 0 && Math.abs(gem1.y - fy) == 1)) {
-                                gem2.x = fx;
-                                gem2.y = fy;
-                                isGem2Selected = true;
-                            } else
-                                isGem1Selected = false;
+                    // swap
+                    if (isGem1Selected) {
+                        if (field.cells[fy][fx] != null) {
+                            if (!field.cells[fy][fx].modif) {
+                                if ((Math.abs(gem1.x - fx) == 1 && Math.abs(gem1.y - fy) == 0) ||
+                                        (Math.abs(gem1.x - fx) == 0 && Math.abs(gem1.y - fy) == 1)) {
+                                    gem2.x = fx;
+                                    gem2.y = fy;
+                                    isGem2Selected = true;
+                                } else
+                                    isGem1Selected = false;
+                            }
                         }
                     }
-                }
 
-                if (!isGem1Selected) {
-                    if (field.cells[fy][fx] != null) {
-                        if (field.cells[fy][fx].modif == false && field.cells[fy][fx].value > 0) {
-                            gem1.x = fx;
-                            gem1.y = fy;
-                            isGem1Selected = true;
-                            isGem2Selected = false;
+                    if (!isGem1Selected) {
+                        if (field.cells[fy][fx] != null) {
+                            if (field.cells[fy][fx].modif == false && field.cells[fy][fx].value > 0) {
+                                gem1.x = fx;
+                                gem1.y = fy;
+                                isGem1Selected = true;
+                                isGem2Selected = false;
+                            }
                         }
                     }
+                    //
                 }
-                //
             }
         }
         return false;
@@ -1687,6 +2254,7 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
 
     @Override
     public boolean longPress(float x, float y) {
+        /*
         if (fieldArea.contains(x * game.scaleCoef, y * game.scaleCoef)) {
             tx = x;
             ty = y;
@@ -1701,6 +2269,7 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
                     chip.cell.copy(field.cells[fy][fx]);
             }
         }
+        */
         return false;
     }
 
@@ -1711,41 +2280,43 @@ public class GameScreen implements Screen, GestureDetector.GestureListener, Inpu
 
     @Override
     public boolean pan(float x, float y, float deltaX, float deltaY) {
-        if (!isGest) {
-            tx += deltaX;
-            ty += deltaY;
-            //Gdx.app.log("GameInfo", tx + ", " + ty);
-            int r = 30;
-            if (Math.abs(tx) > r || Math.abs(ty) > r) {
-                isGest = true;
-                int dx = 0;
-                int dy = 0;
-                if (Math.abs(tx) > r) {
-                    if (tx > r)
-                        dx = 1;
-                    else
-                        dx = -1;
-                } else {
-                    if (Math.abs(ty) > r) {
-                        if (ty > r)
-                            dy = 1;
+        if (gameMode == Mode.mGame) {
+            if (!isGest) {
+                tx += deltaX;
+                ty += deltaY;
+                //Gdx.app.log("GameInfo", tx + ", " + ty);
+                int r = 30;
+                if (Math.abs(tx) > r || Math.abs(ty) > r) {
+                    isGest = true;
+                    int dx = 0;
+                    int dy = 0;
+                    if (Math.abs(tx) > r) {
+                        if (tx > r)
+                            dx = 1;
                         else
-                            dy = -1;
+                            dx = -1;
+                    } else {
+                        if (Math.abs(ty) > r) {
+                            if (ty > r)
+                                dy = 1;
+                            else
+                                dy = -1;
+                        }
                     }
-                }
-                if (isGem1Selected) {
-                    int fx = (int) (gem1.x + dx);
-                    int fy = (int) (gem1.y + dy);
-                    if (isOnField(fx, fy)) {
-                        if (field.cells[fy][fx] != null) {
-                            if (!field.cells[fy][fx].modif) {
-                                if ((Math.abs(gem1.x - fx) == 1 && Math.abs(gem1.y - fy) == 0) ||
-                                        (Math.abs(gem1.x - fx) == 0 && Math.abs(gem1.y - fy) == 1)) {
-                                    gem2.x = fx;
-                                    gem2.y = fy;
-                                    isGem2Selected = true;
-                                } else
-                                    isGem1Selected = false;
+                    if (isGem1Selected) {
+                        int fx = (int) (gem1.x + dx);
+                        int fy = (int) (gem1.y + dy);
+                        if (isOnField(fx, fy)) {
+                            if (field.cells[fy][fx] != null) {
+                                if (!field.cells[fy][fx].modif) {
+                                    if ((Math.abs(gem1.x - fx) == 1 && Math.abs(gem1.y - fy) == 0) ||
+                                            (Math.abs(gem1.x - fx) == 0 && Math.abs(gem1.y - fy) == 1)) {
+                                        gem2.x = fx;
+                                        gem2.y = fy;
+                                        isGem2Selected = true;
+                                    } else
+                                        isGem1Selected = false;
+                                }
                             }
                         }
                     }
