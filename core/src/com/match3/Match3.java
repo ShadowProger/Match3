@@ -3,6 +3,7 @@ package com.match3;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -28,6 +29,7 @@ import java.io.IOException;
 public class Match3 extends Game {
     OrthographicCamera camera;
     public SpriteBatch batch;
+    private Preferences prefs;
 
     public Texture tMap;
     public Texture tBackground;
@@ -51,6 +53,7 @@ public class Match3 extends Game {
     public int levelsCount;
     public Array<Vector2> levelsPosition = new Array<Vector2>();
     public int currentLevel;
+    public int selectedLevel = 0;
 
     @Override
     public void create () {
@@ -74,7 +77,10 @@ public class Match3 extends Game {
         loadPMPatterns();
         loadLevelsPosition();
 
-        currentLevel = 10;
+        prefs = Gdx.app.getPreferences("CurrentLevel");
+        loadCurrentLevel();
+
+        //currentLevel = 10;
 
         this.setScreen(new MapScreen(this));
         //this.setScreen(new GameScreen(this));
@@ -215,5 +221,14 @@ public class Match3 extends Game {
         catch (IOException ex) {
             Gdx.app.log("INFO", "Load is Unsuccessful");
         }
+    }
+
+    public void loadCurrentLevel() {
+        currentLevel = prefs.getInteger("CurrentLevel", 1);
+    }
+
+    public void saveCurrentLevel() {
+        prefs.putInteger("CurrentLevel", currentLevel);
+        prefs.flush();
     }
 }

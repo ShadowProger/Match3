@@ -60,8 +60,6 @@ public class MapScreen implements Screen, GestureDetector.GestureListener, Input
     private final int RECT_WIDTH = 140;
     private Array<Rectangle> levelsRect = new Array<Rectangle>();
 
-    private int selectedLevel = 0;
-
     private Vector2 closeWindowPos;
     private Vector2 startWindowPos;
 
@@ -76,7 +74,7 @@ public class MapScreen implements Screen, GestureDetector.GestureListener, Input
     private Rectangle btnPlay;
 
     private enum Mode {mLevel, mClose, mStart};
-    Mode gameMode;
+    private Mode gameMode;
 
     //private Field field;
 
@@ -93,38 +91,54 @@ public class MapScreen implements Screen, GestureDetector.GestureListener, Input
 
         //tMap = new Texture(Gdx.files.internal("Data\\Pictures\\Map2.png"));
         rgFullMap = new TextureRegion(game.tMap, 0, 0, game.tMap.getWidth(), game.tMap.getHeight());
-        rgFullMap.flip(false, true);
+        if (!rgFullMap.isFlipY())
+            rgFullMap.flip(false, true);
         rgPieceOfMap = new TextureRegion(game.tMap, 0, 0, (int) game.gameWidth, (int) game.gameHeight);
-        rgPieceOfMap.flip(false, true);
+        if (!rgPieceOfMap.isFlipY())
+            rgPieceOfMap.flip(false, true);
 
         rgCompletedLevel = game.aAtlas.findRegion("CompletedLevel");
-        rgCompletedLevel.flip(false, true);
+        if (!rgCompletedLevel.isFlipY())
+            rgCompletedLevel.flip(false, true);
         rgCurrentLevel = game.aAtlas.findRegion("CurrentLevel");
-        rgCurrentLevel.flip(false, true);
+        if (!rgCurrentLevel.isFlipY())
+            rgCurrentLevel.flip(false, true);
         rgLockedLevel = game.aAtlas.findRegion("LockedLevel");
-        rgLockedLevel.flip(false, true);
+        if (!rgLockedLevel.isFlipY())
+            rgLockedLevel.flip(false, true);
         rgStartWindow = game.aAtlas.findRegion("StartWindow");
-        rgStartWindow.flip(false, true);
+        if (!rgStartWindow.isFlipY())
+            rgStartWindow.flip(false, true);
         rgCloseWindow = game.aAtlas.findRegion("CloseWindow_75p");
-        rgCloseWindow.flip(false, true);
+        if (!rgCloseWindow.isFlipY())
+            rgCloseWindow.flip(false, true);
         rgWhiteIcon = game.aAtlas.findRegion("White");
-        rgWhiteIcon.flip(false, true);
+        if (!rgWhiteIcon.isFlipY())
+            rgWhiteIcon.flip(false, true);
         rgRedIcon = game.aAtlas.findRegion("Red");
-        rgRedIcon.flip(false, true);
+        if (!rgRedIcon.isFlipY())
+            rgRedIcon.flip(false, true);
         rgGreenIcon = game.aAtlas.findRegion("Green");
-        rgGreenIcon.flip(false, true);
+        if (!rgGreenIcon.isFlipY())
+            rgGreenIcon.flip(false, true);
         rgBlueIcon = game.aAtlas.findRegion("Blue");
-        rgBlueIcon.flip(false, true);
+        if (!rgBlueIcon.isFlipY())
+            rgBlueIcon.flip(false, true);
         rgYellowIcon = game.aAtlas.findRegion("Yellow");
-        rgYellowIcon.flip(false, true);
+        if (!rgYellowIcon.isFlipY())
+            rgYellowIcon.flip(false, true);
         rgPinkIcon = game.aAtlas.findRegion("Pink");
-        rgPinkIcon.flip(false, true);
+        if (!rgPinkIcon.isFlipY())
+            rgPinkIcon.flip(false, true);
         rgItemIcon = game.aAtlas.findRegion("Item");
-        rgItemIcon.flip(false, true);
+        if (!rgItemIcon.isFlipY())
+            rgItemIcon.flip(false, true);
         rgGoldIcon = game.aAtlas.findRegion("Gold_Icon");
-        rgGoldIcon.flip(false, true);
+        if (!rgGoldIcon.isFlipY())
+            rgGoldIcon.flip(false, true);
         rgBackIcon = game.aAtlas.findRegion("Back_Icon");
-        rgBackIcon.flip(false, true);
+        if (!rgBackIcon.isFlipY())
+            rgBackIcon.flip(false, true);
 
         //font = new BitmapFont(Gdx.files.internal("Data\\Font\\WhiteFont.fnt"), true);
 
@@ -323,10 +337,6 @@ public class MapScreen implements Screen, GestureDetector.GestureListener, Input
                 int ty = (int) (levelsRect.get(i).y + RECT_WIDTH / 2  - layout.height / 2);
                 game.font4.draw(batch, str, tx, ty);
             }
-            game.font.draw(batch, dispX + "", 30, 30);
-            game.font.draw(batch, speedX + "", 30, 70);
-            game.font.draw(batch, isSwap + "", 30, 110);
-            game.font.draw(batch, selectedLevel + "", 30, 150);
 
             if (gameMode == Mode.mClose) {
                 batch.draw(rgCloseWindow, closeWindowPos.x, closeWindowPos.y);
@@ -334,7 +344,7 @@ public class MapScreen implements Screen, GestureDetector.GestureListener, Input
 
             if (gameMode == Mode.mStart) {
                 batch.draw(rgStartWindow, startWindowPos.x, startWindowPos.y);
-                str = "Уровень " + selectedLevel;
+                str = "Уровень " + game.selectedLevel;
                 layout.setText(game.font4, str);
                 game.font4.draw(batch, str, levelPos.x - layout.width / 2, levelPos.y);
                 if (game.fParam.level.mission2.mType == Mach3Game.MissionType.mtNone) {
@@ -463,15 +473,15 @@ public class MapScreen implements Screen, GestureDetector.GestureListener, Input
                         sx = (screenX + dispX) * game.scaleCoef;
                         sy = screenY * game.scaleCoef;
                         if (levelsRect.get(i).contains(sx, sy)) {
-                            selectedLevel = i + 1;
+                            game.selectedLevel = i + 1;
                             f = true;
                             break;
                         }
                     }
 
                     if (f) {
-                        if (selectedLevel < 11 && selectedLevel <= game.currentLevel) {
-                            game.fParam = loadLevel(selectedLevel + ".lvl");
+                        if (game.selectedLevel < 11 && game.selectedLevel <= game.currentLevel) {
+                            game.fParam = loadLevel(game.selectedLevel + ".lvl");
                             //game.setScreen(new GameScreen(game));
                             setMode(Mode.mStart);
                         }
